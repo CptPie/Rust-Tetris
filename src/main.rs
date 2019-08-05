@@ -1,6 +1,6 @@
 use std::collections::LinkedList;
 
-
+// Structs for data structures
 #[derive(Debug)]
 struct Field {
     height: i32,
@@ -22,7 +22,7 @@ struct Point {
 }
 
 fn main() {
-
+    //create some rectangles and add them to the field
     let rect1 = Rectangle{ corner:Point {x:3,y:5},height:3,length:2};
 
     let rect2 = Rectangle{ corner:Point {x:10,y:15},height:2,length:12};
@@ -34,13 +34,21 @@ fn main() {
     list.push_back(rect3);
     let field=Field{height:30,width:35,shapes:list};
 
-    printField(field);
 
+    // print the field
+    printField(field);
 }
 
+
+/**
+ * Function to print the current playing field
+ */
+
 fn printField(field: Field) {
+    // list of points
     let mut used_points = LinkedList::new();
 
+    // find used points
     for shape in field.shapes{
         println!("{:?}",shape);
         for i in shape.corner.x..shape.corner.x+shape.height{
@@ -53,6 +61,7 @@ fn printField(field: Field) {
     // Print upper border
     println!("-{:-<amount$}-","",amount=field.width as usize);
 
+    // find which lines are affected by points
     for line in 1..field.height+1 {
         let mut used = false;
         for point in &used_points {
@@ -65,6 +74,7 @@ fn printField(field: Field) {
         if !used {
             println!("|{: <amount$}|","",amount=field.width as usize);
         } else {
+
             let mut lineIndex = vec![false;field.width as usize];
             for point in &used_points{
                 if point.x==line{
