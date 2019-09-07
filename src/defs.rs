@@ -1,23 +1,16 @@
 // Structs for data structures
+use crate::pieces::Shape;
 
-use crate::shapes::*;
-
-#[derive(Debug)]
+#[derive(Debug,Clone)]
 pub struct Field {
     pub height: i8,
     pub width: i8,
-    pub shapes: Vec<T>,
+    pub placed_blocks: Vec<Block>,
+    pub curr_shape: Shape,
 }
 
-#[derive(Debug)]
-pub struct Rectangle {
-    pub corner: Point,
-    pub height: i8,
-    pub length: i8,
-}
-
-#[derive(Debug)]
-pub struct Point {
+#[derive(Debug,Copy,Clone)]
+pub struct Block {
     pub x: i8,
     pub y: i8,
 }
