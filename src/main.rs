@@ -1,34 +1,102 @@
+use crossterm::*;
+use std::io;
+
 use crate::defs::*;
-use crate::shapes::*;
+use crate::pieces::*;
+use std::{thread,time};
 
 mod defs;
-mod shapes;
+mod pieces;
+
+fn clear_all_lines() -> io::Result<()> {
+    let terminal = terminal();
+    
+    // Clear all lines in terminal;
+    terminal.clear(ClearType::All)?;
+
+    Ok(())
+}
+
+fn update_screen(f: &Field) {
+    clear_all_lines();
+    print_field(f);
+}
+
+fn process_input(key_event: InputEvent) -> char {
+    match key_event {
+        InputEvent::Keyboard(k) => {
+            match k {
+                KeyEvent::Char(c) => match c {
+                    'q' => { return 'q'; }
+
+                    'a' => { return 'l'; }
+
+                    'd' => { return 'r'; }
+
+                    's' => { return 'd'; }
+
+                    _ => {}
+                }
+                  _ => {},
+            }
+        }
+        _ => {},
+    }
+    return ' ';
+}
 
 fn main() {
-    //create some rectangles and add them to the field
-    let field = Field{height: 30, width: 15, shapes: Vec::new()};
+    // Create an empty field
+    let mut field = Field {
+        width: 10,
+        height: 15,
+        placed_blocks: Vec::new(),
+        curr_shape: Shape::default(),
+    };
 
-    let shape = IPiece{x:2,y:10,field: field, Default::default()};
+    // add the current shape
+    field.curr_shape.init_IPiece(1, 3);
 
+    let input = input();
+    let mut sync_stdin = input.read_async();
+    clear_all_lines();
 
+    while true { 
+        let event = sync_stdin.next();
 
-    // print the field
-    print_field(field);
+        let mut result = ' ';
+        if let Some(key_event) = event {
+            result = process_input(key_event);
+        }
+
+        match result {
+            'l' => {field.curr_shape.moveLeft(field.clone());print!("left")}
+            'r' => {field.curr_shape.moveRight(field.clone());}
+            'd' => {field.curr_shape.moveDown(field.clone());}
+            'q' => {break;}
+            _ => {}
+        }
+        thread::sleep(time::Duration::from_secs(1));
+
+        update_screen(&field);        
+        field.curr_shape.moveDown(field.clone());
+        
+    }
+
+    // save points of the shape to the field
+
+    // loop
 }
 
 /**
  * Function to print the current playing field
  */
-
-fn print_field(field: Field) {
+fn print_field(field: &Field) {
     // list of points
-    let mut used_points = Vec::new();
-
-
-    
-
-
-
+    let mut used_points: Vec<Block> = Vec::new();
+    for block in field.curr_shape.blocks.clone() {
+        used_points.push(block)
+    }
     // Print upper border
     println!("-{:-<amount$}-", "", amount = field.width as usize);
 
