@@ -35,6 +35,8 @@ fn process_input(key_event: InputEvent) -> char {
 
                     's' => { return 'd'; }
 
+                    'r' => { return 't'; }
+
                     _ => {}
                 }
                   _ => {},
@@ -57,29 +59,46 @@ fn main() {
     // add the current shape
     field.curr_shape.init_IPiece(1, 3);
 
+    // Setup Terminal
+    let screen = RawScreen::into_raw_mode();
     let input = input();
     let mut sync_stdin = input.read_async();
     clear_all_lines();
 
+    // Game loop
     while true { 
+        
+        // Handle button presses
         let event = sync_stdin.next();
-
         let mut result = ' ';
         if let Some(key_event) = event {
             result = process_input(key_event);
         }
 
+        let mut returncode = 0;
         match result {
-            'l' => {field.curr_shape.moveLeft(field.clone());print!("left")}
-            'r' => {field.curr_shape.moveRight(field.clone());}
-            'd' => {field.curr_shape.moveDown(field.clone());}
+            'l' => {field.curr_shape.moveLeft(field.clone()); update_screen(&field); }
+            'r' => {field.curr_shape.moveRight(field.clone()); update_screen(&field); }
+            'd' => { returncode += field.curr_shape.moveDown(field.clone()); update_screen(&field); }
+            't' => {field.curr_shape.rotate(); update_screen(&field); }
             'q' => {break;}
             _ => {}
         }
+
+        // update after user action
+        update_screen(&field);
+
+        // wait for auto drop        
         thread::sleep(time::Duration::from_secs(1));
 
-        update_screen(&field);        
-        field.curr_shape.moveDown(field.clone());
+        // autodrop 
+        returncode += field.curr_shape.moveDown(field.clone());
+        update_screen(&field);
+        if returncode>0 {
+            field.placed_blocks.append(&mut field.curr_shape.blocks.clone());
+            field.curr_shape.init_IPiece(1, 3);
+        }
+        
         
     }
 
@@ -91,15 +110,22 @@ fn main() {
 /**
  * Function to print the current playing field
  */
-fn print_field(field: &Field) {
+fn print_field(field: &Field) -> io::Result<()> {
     // list of points
     let mut used_points: Vec<Block> = Vec::new();
     for block in field.curr_shape.blocks.clone() {
         used_points.push(block)
     }
+    for block in field.placed_blocks.clone() {
+        used_points.push(block)
+    }
     // Print upper border
-    println!("-{:-<amount$}-", "", amount = field.width as usize);
+    let cursor = cursor();
+    cursor.hide()?;
+    cursor.goto(0, 0);
+    print!("-{:-<amount$}-", "", amount = field.width as usize);
 
+    let mut lastLine = 0;
     // find which lines are affected by points
     for line in 1..field.height + 1 {
         let mut used = false;
@@ -109,7 +135,7 @@ fn print_field(field: &Field) {
                 break;
             }
         }
-
+        cursor.goto(0, line as u16);
         if !used {
             println!("|{: <amount$}|", "", amount = field.width as usize);
         } else {
@@ -129,8 +155,12 @@ fn print_field(field: &Field) {
             }
             println!("|");
         }
+        lastLine = line;
     }
-
+    cursor.goto(0, (lastLine+1) as u16);
     // Print lower border
     println!("-{:-<amount$}-", "", amount = field.width as usize);
+
+    //stdout.flush()?;
+    Ok(())
 }
