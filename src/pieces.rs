@@ -35,31 +35,32 @@ impl Shape{
 
         self.defMask = vec![
             Block{x:self.x+0,y:self.y+0},
-            Block{x:self.x+0,y:self.y+1},
-            Block{x:self.x+0,y:self.y+2},
-            Block{x:self.x+0,y:self.y+3}
+            Block{x:self.x+1,y:self.y+0},
+            Block{x:self.x+2,y:self.y+0},
+            Block{x:self.x+3,y:self.y+0}
             ];
 
         self.rotMask1 = vec![
             Block{x:self.x+0,y:self.y+0},
+            Block{x:self.x+0,y:self.y+1},
+            Block{x:self.x+0,y:self.y+2},
+            Block{x:self.x+0,y:self.y+3}
+            ];
+
+        self.rotMask2 = vec![
+            Block{x:self.x+0,y:self.y+0},
             Block{x:self.x+1,y:self.y+0},
             Block{x:self.x+2,y:self.y+0},
             Block{x:self.x+3,y:self.y+0}
             ];
-
-        self.rotMask2 = vec![
+            
+        self.rotMask3 = vec![
             Block{x:self.x+0,y:self.y+0},
             Block{x:self.x+0,y:self.y+1},
             Block{x:self.x+0,y:self.y+2},
             Block{x:self.x+0,y:self.y+3}
             ];
 
-        self.rotMask3 = vec![
-            Block{x:self.x+0,y:self.y+0},
-            Block{x:self.x+1,y:self.y+0},
-            Block{x:self.x+2,y:self.y+0},
-            Block{x:self.x+3,y:self.y+0}
-            ];
 
         self.blocks = self.defMask.clone();
     }
@@ -67,14 +68,46 @@ impl Shape{
     pub fn rotate(&mut self){
         self.rotation = (self.rotation+1)%4;
         match self.rotation {
-            0 => { self.blocks = self.defMask.clone(); }
-            1 => { self.blocks = self.rotMask1.clone(); }
-            2 => { self.blocks = self.rotMask2.clone(); }
-            _ => { self.blocks = self.rotMask3.clone(); }
+            0 => {
+                    let mut clone = Vec::new();
+                    for mut block in self.defMask.clone() {
+                        block.x += self.x;
+                        block.y += self.y;
+                        clone.push(block);
+                    } 
+                    self.blocks = clone.clone();
+                    }
+            1 => {                     
+                    let mut clone = Vec::new();
+                    for mut block in self.rotMask1.clone() {
+                        block.x += self.x;
+                        block.y += self.y;
+                        clone.push(block);
+                    } 
+                    self.blocks = clone.clone(); 
+                    }
+            2 => {
+                    let mut clone = Vec::new();
+                    for mut block in self.rotMask2.clone() {
+                        block.x += self.x;
+                        block.y += self.y;
+                        clone.push(block);
+                    } 
+                    self.blocks = clone.clone(); 
+                    }
+            _ => {
+                    let mut clone = Vec::new();
+                    for mut block in self.rotMask3.clone() {
+                        block.x += self.x;
+                        block.y += self.y;
+                        clone.push(block);
+                    } 
+                    self.blocks = clone.clone();
+                    }
         }
     }
 
-    pub fn moveLeft(&mut self,mut f: Field){
+    pub fn moveLeft(&mut self,mut f: Field){      
         if self.y-1 < 0 {
             return;
         } else {
